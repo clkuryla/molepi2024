@@ -1,0 +1,170 @@
+---
+title: "Mol Epi Mock Study"
+author: "Christine Lucille Kuryla"
+date: "2024-11-21"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(Hmisc)
+
+```
+
+```{r}
+
+# Load data version 202411211329
+data <- read_csv("data/merge_data.csv")
+
+```
+
+oxidative stress was measured in two ways
+
+1) dipstick commercial kit
+2) ELISA
+
+## Dipstick
+
+```{r}
+
+data_dipstick <- data %>% 
+  filter(!(is.na(hydration))) %>% 
+  select(hydration:free_radical, iso_cradj, iso_spadj)
+
+# Summary
+
+# Correlation Matrix of Dipstick Variables
+
+melted_cormat <- reshape2::melt(cor(data_dipstick), na.rm = TRUE)
+
+ggplot(data = melted_cormat, aes(Var2, Var1, fill = value))+
+ geom_tile(color = "white")+
+ scale_fill_gradient2(low = "blue", high = "red", mid = "white", 
+   midpoint = 0, limit = c(-1,1), space = "Lab", 
+   name="Pearson\nCorrelation") +
+  theme_minimal()+ 
+ theme(axis.text.x = element_text(angle = 45, vjust = 1, 
+     hjust = 1))+
+ coord_fixed() +
+  geom_text(aes(Var2, Var1, label = if_else(value != 0, as.character(round(value, digits = 2)), " ")))
+
+# Scatter plot of creatinine adj vs spadj
+
+data %>% 
+  ggplot((aes(x = iso_cradj, y = iso_spadj))) +
+  geom_point() +
+  geom_text(aes(label=id), nudge_x=10)
+
+# Scatter plot creatinine vs specific gravity
+data %>% 
+  ggplot((aes(x = creatinine, y = sp))) +
+  geom_point() +
+  geom_text(aes(label=id), nudge_x=50)
+
+# Executive decision: go with specific gravity
+
+# Future directions: compare nutrient analysis from dipstick to DHQ
+
+
+```
+
+# Main Analysis: Diet Quality and Oxidative Stress
+
+```{r}
+
+# heitotal = diet quality
+# oxidative stressL iso_cradj, iso_spadj
+
+# Diet quality vs oxidative stress
+data %>% 
+  filter(id != "a00029") %>% 
+  ggplot(aes(x = hei_total, y = iso_cradj)) +
+  geom_point() +
+  geom_text(aes(label=id), nudge_x=10) +
+  geom_smooth(method = "lm")
+
+summary(lm(iso_spadj ~ hei_total, data = data))
+
+```
+
+
+# Diet Subtypes
+
+```{r}
+
+# PCA of the hei subtypes
+
+data_diet <- data %>% 
+  select(hei_total:hei_perc_cal_add_sug) %>% 
+  na.omit()
+
+pca_result <- princomp(data_diet, center = TRUE, scale = TRUE)
+loadings(pca_result)
+
+# PCA CODE FROM CHRISTINE TO COME
+
+
+# Correlation matrix of subttypes
+
+melted_cormat <- reshape2::melt(cor(data_diet))
+
+ggplot(data = melted_cormat, aes(Var2, Var1, fill = value))+
+ geom_tile(color = "white")+
+ scale_fill_gradient2(low = "blue", high = "red", mid = "white", 
+   midpoint = 0, limit = c(-1,1), space = "Lab", 
+   name="Pearson\nCorrelation") +
+  theme_minimal()+ 
+ theme(axis.text.x = element_text(angle = 45, vjust = 1, 
+     hjust = 1))+
+ coord_fixed() +
+  geom_text(aes(Var2, Var1, label = if_else(value != 0, as.character(round(value, digits = 2)), " ")))
+
+
+# Diet Densities
+
+data_density <- data %>% 
+  select(hei_total, hei_density_veg:hei_density_sea_plant_prot, hei_density_sodium, hei_density_ref_grain) %>% 
+  na.omit()
+
+melted_cormat <- reshape2::melt(cor(data_density))
+
+ggplot(data = melted_cormat, aes(Var2, Var1, fill = value))+
+ geom_tile(color = "white")+
+ scale_fill_gradient2(low = "blue", high = "red", mid = "white", 
+   midpoint = 0, limit = c(-1,1), space = "Lab", 
+   name="Pearson\nCorrelation") +
+  theme_minimal()+ 
+ theme(axis.text.x = element_text(angle = 45, vjust = 1, 
+     hjust = 1))+
+ coord_fixed() +
+  geom_text(aes(Var2, Var1, label = if_else(value != 0, as.character(round(value, digits = 2)), " ")))
+
+
+
+```
+
+
+```{r}
+
+data %>% 
+  filter(id != "a00029") %>% 
+  ggplot(aes(x = age, y = iso_spadj)) +
+  geom_point() +
+  geom_text(aes(label=id), nudge_x=5)
+
+data %>% 
+  filter(id != "a00029") %>% 
+  ggplot(aes(x = gender, y = iso_spadj)) +
+  geom_boxplot()
+
+data %>% 
+  mutate(bmi = (q6 * 0.453592) / ((q5 * 0.0254)^2)) %>% 
+  filter(id != "a00029") %>% 
+  ggplot(aes(x = bmi, y = iso_spadj)) +
+  geom_point() +
+  geom_text(aes(label=id), nudge_x=3)
+
+```
+
