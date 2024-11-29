@@ -2,7 +2,7 @@
 title: "Mol Epi Mock Study"
 author: "Christine Lucille Kuryla"
 date: "2024-11-21"
-output: html_document
+output: github_document
 ---
 
 
@@ -25,6 +25,9 @@ library(Hmisc)
 # Load data version 202411211329
 data <- read_csv("data/merge_data.csv")
 
+#data_to_analyze <- data %>% 
+ # select(-c())
+
 ```
 
 oxidative stress was measured in two ways
@@ -34,8 +37,11 @@ oxidative stress was measured in two ways
 
 ## Dipstick
 
-```{r}
+```{r, eval = FALSE}
 
+
+
+# NEED TO SELECT THE NUMERIC ONES ONLY AND MAYBE CONVERT THE FACTORS
 data_dipstick <- data %>% 
   filter(!(is.na(hydration))) %>% 
   select(hydration:free_radical, iso_cradj, iso_spadj)
@@ -43,6 +49,7 @@ data_dipstick <- data %>%
 # Summary
 
 # Correlation Matrix of Dipstick Variables
+
 
 melted_cormat <- reshape2::melt(cor(data_dipstick), na.rm = TRUE)
 
@@ -122,11 +129,12 @@ ggplot(data = melted_cormat, aes(Var2, Var1, fill = value))+
  scale_fill_gradient2(low = "blue", high = "red", mid = "white", 
    midpoint = 0, limit = c(-1,1), space = "Lab", 
    name="Pearson\nCorrelation") +
-  theme_minimal()+ 
+    theme_minimal() +
  theme(axis.text.x = element_text(angle = 45, vjust = 1, 
      hjust = 1))+
- coord_fixed() +
-  geom_text(aes(Var2, Var1, label = if_else(value != 0, as.character(round(value, digits = 2)), " ")))
+ coord_fixed() #+
+ # geom_text(aes(Var2, Var1, label = if_else(value != 0, as.character(round(value, digits = 2)), " "))) +
+
 
 
 # Diet Densities

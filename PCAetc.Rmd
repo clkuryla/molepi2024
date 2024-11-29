@@ -2,7 +2,7 @@
 title: "PCA and Corr heatmaps"
 author: "Christine Lucille Kuryla"
 date: "2024-11-25"
-output: html_document
+output: github_document
 ---
 
 ```{r setup, include=FALSE}
