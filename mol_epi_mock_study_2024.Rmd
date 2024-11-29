@@ -5,6 +5,13 @@ date: "2024-11-21"
 output: html_document
 ---
 
+
+https://docs.google.com/document/d/1Q7SPJ6jG5DpU9rxNhNgf3ro_XE324vxrlF-itp2etUc/edit?tab=t.0
+
+https://docs.google.com/presentation/d/1-_SB_NDSO_z_84U7QyzO2zf9GRk6RMJdB8-q4KWfU0Q/edit#slide=id.p
+
+
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 

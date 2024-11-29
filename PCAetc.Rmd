@@ -1,0 +1,90 @@
+---
+title: "PCA and Corr heatmaps"
+author: "Christine Lucille Kuryla"
+date: "2024-11-25"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+
+```
+
+```{r}
+
+# Load data version 202411211329
+data <- read_csv("data/merge_data.csv")
+
+ data_diet <- data %>% 
+  select(hei_total:hei_perc_cal_add_sug) %>% 
+  na.omit()
+
+```
+
+## PCA of diet var with prcomp
+
+```{r}
+pca_result <- prcomp(data_diet, scale = TRUE)
+
+
+loadings <- pca_result$rotation
+
+loadings <- loadings[,1:10]
+```
+
+### Loadings heatmap
+
+```{r}
+# Convert the loadings matrix into a long format for ggplot
+library(reshape2)
+loadings_melted <- melt(loadings)
+
+# Plot the heatmap using ggplot
+ggplot(loadings_melted, aes(x = Var2, y = Var1, fill = value)) +
+  geom_tile() +
+  scale_fill_gradient2(low = "blue", mid = "lightyellow", high = "red", midpoint = 0) +
+  labs(title = "Heatmap of PCA Loadings", x = "Principal Components", y = "Variables") +
+  theme_minimal()
+
+
+```
+
+# biplot
+```{r}
+
+biplot(pca_result)
+
+```
+
+# PCA scatterplot
+```{r}
+
+# Prepare data for plotting
+scores <- as.data.frame(pca_result$x[, 1:6])  # Take PC1 and PC2
+scores$hei_total <- data_diet %>% 
+ # mutate(thirtyday_expire_flag = as.factor(thirtyday_expire_flag)) 
+  pull(hei_total) 
+#colnames(scores) <- c("PC1", "PC2", "PC3", "PC4", "PC5", "thirty_day")
+
+# Plot
+ggplot(scores, aes(x = PC1, y = PC2, color = hei_total)) +
+  geom_point(size = 2, alpha = 0.6) +
+  labs(title = "PC1 vs PC2", x = "Principal Component 1", y = "Principal Component 2") +
+  theme_minimal() 
+
+as.data.frame(loadings) %>%
+  select(PC1) %>% 
+  arrange(PC1)
+
+
+# Plot
+ggplot(scores, aes(x = PC3, y = PC4, color = hei_total)) +
+  geom_point(size = 2, alpha = 0.6) +
+  labs(title = "PC3 vs PC4", x = "Principal Component 1", y = "Principal Component 2") +
+  theme_minimal() 
+
+
+```
+
+
