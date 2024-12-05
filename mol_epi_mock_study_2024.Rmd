@@ -183,3 +183,77 @@ data %>%
 
 ```
 
+# Report Back
+
+
+```{r}
+
+# Load required libraries
+library(ggplot2)
+library(ggbeeswarm) # For beeswarm-style point distribution
+
+# Create the output directory
+# output_dir <- "figures"
+# if (!dir.exists(output_dir)) {
+#   dir.create(output_dir)
+# }
+
+data_original <- data
+
+# remove outliers
+data <- data %>% filter(iso_spadj < 800)
+
+# mean value
+mean(data$iso_spadj)
+
+# Loop through each id
+for (participant_id in unique(data$id)[4]) {
+  
+  # Subset data for the current participant
+  participant_data <- data[data$id == participant_id, ]
+  
+  # Extract the participant's `iso_spadj` value and format to 2 decimal places
+  participant_value <- formatC(participant_data$iso_spadj, format = "f", digits = 2)
+  
+  
+ # Create the plot
+  p <- ggplot(data %>% 
+                filter(iso_spadj < 800), 
+              aes(x = 0, y = iso_spadj)) +
+  #  geom_violin(fill = "grey", alpha = 0.3, color = "black", width = 0.5) + # Violin plot as the silhouette
+    geom_beeswarm(aes(color = id == participant_id), 
+                  cex = 3, priority = "density", method = "center") + # Beeswarm-style dots
+    scale_color_manual(
+      values = c("FALSE" = "black", "TRUE" = "red"), # Black for others, red for participant
+      labels = c("FALSE" = "Other Participants' Values", "TRUE" = "Your Value") # Custom legend labels
+    ) +
+    # geom_point(data = participant_data, 
+    #            aes(x = 0, y = iso_spadj), 
+    #            color = "red", size = 4, shape = 18) + # Highlighted red diamond for participant
+    geom_hline(aes(yintercept = mean(data$iso_spadj, na.rm = TRUE), linetype = "Average Value"), 
+               color = "blue") + # Horizontal line for the average with legend label
+    scale_linetype_manual(
+      values = c("Average Value" = "dashed"), # Define line type
+      labels = c("Average Value" = "Average Value") # Custom label
+    ) +
+    labs(x = "", 
+         y = "Oxidative Stress Level", 
+         title = paste("Participant:", participant_id),
+         subtitle = paste0("Your value: ",participant_value, " pg/mL"),
+         color = "",
+         linetype = "") + # Remove the title for linetype
+    theme_minimal() +
+    theme(axis.text.x = element_blank(), 
+          axis.ticks.x = element_blank(),
+          legend.position = "right") # Move legend to the top
+  
+  # Save the plot
+  ggsave(filename = paste0(output_dir, "/participant_", participant_id, ".png"), 
+         plot = p, width = 4.5, height = 3, dpi = 300, , bg = "white")
+}
+
+
+p
+
+```
+
